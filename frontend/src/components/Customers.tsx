@@ -350,7 +350,7 @@ export const Customers: React.FC = () => {
                   <tr key={c.id} className="hover:bg-slate-50 transition-all duration-150">
                     <td className="py-3 pl-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-cyan-100 border border-cyan-300 text-cyan-600 font-bold flex items-center justify-center text-xs flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-cyan-100 border border-cyan-300 text-cyan-600 font-bold flex items-center justify-center text-xs shrink-0">
                           {c.name.slice(0, 2).toUpperCase()}
                         </div>
                         <div className="min-w-0">
