@@ -33,3 +33,5 @@ export function Login(arg1:string,arg2:string):Promise<main.LoginResponse>;
 export function UpdateCustomer(arg1:number,arg2:main.Customer):Promise<main.CustomerResponse>;
 
 export function UpdateProduct(arg1:number,arg2:main.Product):Promise<main.ProductResponse>;
+
+export function UpdateUser(arg1:string,arg2:main.User):Promise<main.CreateUserResponse>;
