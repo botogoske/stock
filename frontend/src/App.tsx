@@ -303,7 +303,7 @@ function App() {
       </main>
 
       <footer className="py-4 text-center border-t border-slate-200 text-slate-400 text-xs">
-        &copy; {new Date().getFullYear()} Lab001. Desenvolvido com Wails, React e Tailwind CSS.
+        Copyright &copy; {new Date().getFullYear()} Botogoske Soluções.
       </footer>
     </div>
   );
