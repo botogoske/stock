@@ -29,3 +29,7 @@ export function GetUsers():Promise<Array<main.User>>;
 export function GetVendas():Promise<Array<main.Venda>>;
 
 export function Login(arg1:string,arg2:string):Promise<main.LoginResponse>;
+
+export function UpdateCustomer(arg1:number,arg2:main.Customer):Promise<main.CustomerResponse>;
+
+export function UpdateProduct(arg1:number,arg2:main.Product):Promise<main.ProductResponse>;

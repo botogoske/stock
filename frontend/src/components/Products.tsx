@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GetProducts, CreateProduct, DeleteProduct } from "../../wailsjs/go/main/App";
+import { GetProducts, CreateProduct, UpdateProduct, DeleteProduct } from "../../wailsjs/go/main/App";
 import { main } from "../../wailsjs/go/models";
 
 export const Products: React.FC = () => {
@@ -7,6 +7,7 @@ export const Products: React.FC = () => {
   const [actionMsg, setActionMsg] = useState('');
   const [actionError, setActionError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -32,6 +33,25 @@ export const Products: React.FC = () => {
     setCategory('');
     setQuantity('');
     setMinStock('');
+    setEditingProductId(null);
+  };
+
+  const handleEdit = (product: main.Product) => {
+    setEditingProductId(product.id);
+    setName(product.name);
+    setDescription(product.description);
+    const raw = product.price.toFixed(2).replace(/\D/g, '');
+    setPrice(formatPrice(raw));
+    setCategory(product.category);
+    setQuantity(String(product.quantity));
+    setMinStock(String(product.min_stock));
+    setActionMsg('');
+    setActionError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    resetForm();
   };
 
   const formatPrice = (value: string) => {
@@ -58,8 +78,8 @@ export const Products: React.FC = () => {
     setActionMsg('');
     setIsLoading(true);
 
-    const newProduct = new main.Product({
-      id: 0,
+    const productData = new main.Product({
+      id: editingProductId || 0,
       name: name.trim(),
       description: description.trim(),
       price: parsePrice(price),
@@ -68,8 +88,12 @@ export const Products: React.FC = () => {
       min_stock: parseInt(minStock.replace(/\D/g, '')) || 0,
     });
 
+    const action = editingProductId
+      ? UpdateProduct(editingProductId, productData)
+      : CreateProduct(productData);
+
     setTimeout(() => {
-      CreateProduct(newProduct)
+      action
         .then((res: any) => {
           setIsLoading(false);
           if (res.success) {
@@ -110,7 +134,7 @@ export const Products: React.FC = () => {
 
       {/* LEFT: Registration Form */}
       <div className="lg:col-span-4 bg-white border border-slate-200 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
-        <h2 className="text-lg font-bold text-slate-900 mb-4">Novo Produto</h2>
+        <h2 className="text-lg font-bold text-slate-900 mb-4">{editingProductId ? 'Editar Produto' : 'Novo Produto'}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
@@ -229,23 +253,38 @@ export const Products: React.FC = () => {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-md shadow-violet-200/50"
-          >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          <div className="flex space-x-2">
+            {editingProductId && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                disabled={isLoading}
+                className="w-12 flex items-center justify-center py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-600 font-semibold rounded-xl text-sm transition-all duration-200 disabled:opacity-50"
+                title="Cancelar edição"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                <span>Salvando...</span>
-              </>
-            ) : (
-              <span>Adicionar Produto</span>
+              </button>
             )}
-          </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-md shadow-violet-200/50"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Salvando...</span>
+                </>
+              ) : (
+                <span>{editingProductId ? 'Atualizar Produto' : 'Adicionar Produto'}</span>
+              )}
+            </button>
+          </div>
         </form>
       </div>
 
@@ -335,15 +374,26 @@ export const Products: React.FC = () => {
                       {p.min_stock > 0 ? `${p.min_stock} un${p.min_stock !== 1 ? 's' : ''}` : '—'}
                     </td>
                     <td className="py-3 pr-4 text-right">
-                      <button
-                        onClick={() => handleDelete(p.id)}
-                        className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-150"
-                        title="Excluir produto"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      <div className="flex items-center justify-end space-x-1">
+                        <button
+                          onClick={() => handleEdit(p)}
+                          className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-150"
+                          title="Editar produto"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-150"
+                          title="Excluir produto"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

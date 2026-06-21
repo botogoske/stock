@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GetCustomers, CreateCustomer, DeleteCustomer } from "../../wailsjs/go/main/App";
+import { GetCustomers, CreateCustomer, UpdateCustomer, DeleteCustomer } from "../../wailsjs/go/main/App";
 import { main } from "../../wailsjs/go/models";
 
 export const Customers: React.FC = () => {
@@ -7,6 +7,7 @@ export const Customers: React.FC = () => {
   const [actionMsg, setActionMsg] = useState('');
   const [actionError, setActionError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
 
   // Form state
   const [name, setName] = useState('');
@@ -35,6 +36,25 @@ export const Customers: React.FC = () => {
     setBairro('');
     setCidade('');
     setCep('');
+    setEditingCustomerId(null);
+  };
+
+  const handleEdit = (customer: main.Customer) => {
+    setEditingCustomerId(customer.id);
+    setName(customer.name);
+    setRazaoSocial(customer.razao_social);
+    setCnpj(customer.cnpj);
+    setEndereco(customer.endereco);
+    setBairro(customer.bairro);
+    setCidade(customer.cidade);
+    setCep(customer.cep);
+    setActionMsg('');
+    setActionError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    resetForm();
   };
 
   const formatCNPJ = (value: string) => {
@@ -63,8 +83,8 @@ export const Customers: React.FC = () => {
     setActionMsg('');
     setIsLoading(true);
 
-    const newCustomer = new main.Customer({
-      id: 0,
+    const customerData = new main.Customer({
+      id: editingCustomerId || 0,
       name: name.trim(),
       razao_social: razaoSocial.trim(),
       cnpj: cnpj.trim(),
@@ -74,8 +94,12 @@ export const Customers: React.FC = () => {
       cep: cep.trim(),
     });
 
+    const action = editingCustomerId
+      ? UpdateCustomer(editingCustomerId, customerData)
+      : CreateCustomer(customerData);
+
     setTimeout(() => {
-      CreateCustomer(newCustomer)
+      action
         .then((res: any) => {
           setIsLoading(false);
           if (res.success) {
@@ -116,7 +140,7 @@ export const Customers: React.FC = () => {
 
       {/* LEFT: Registration Form */}
       <div className="lg:col-span-4 bg-white border border-slate-200 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
-        <h2 className="text-lg font-bold text-slate-900 mb-4">Novo Cliente</h2>
+        <h2 className="text-lg font-bold text-slate-900 mb-4">{editingCustomerId ? 'Editar Cliente' : 'Novo Cliente'}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           {/* Name */}
@@ -250,23 +274,38 @@ export const Customers: React.FC = () => {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-md shadow-violet-200/50"
-          >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          <div className="flex space-x-2">
+            {editingCustomerId && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                disabled={isLoading}
+                className="w-12 flex items-center justify-center py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-600 font-semibold rounded-xl text-sm transition-all duration-200 disabled:opacity-50"
+                title="Cancelar edição"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                <span>Salvando...</span>
-              </>
-            ) : (
-              <span>Adicionar Cliente</span>
+              </button>
             )}
-          </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-md shadow-violet-200/50"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Salvando...</span>
+                </>
+              ) : (
+                <span>{editingCustomerId ? 'Atualizar Cliente' : 'Adicionar Cliente'}</span>
+              )}
+            </button>
+          </div>
         </form>
       </div>
 
@@ -326,15 +365,26 @@ export const Customers: React.FC = () => {
                     <td className="py-3 text-slate-600 text-xs">{c.cidade || '—'}</td>
                     <td className="py-3 text-slate-500 text-xs">{c.bairro || '—'}</td>
                     <td className="py-3 pr-4 text-right">
-                      <button
-                        onClick={() => handleDelete(c.id)}
-                        className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-150"
-                        title="Excluir cliente"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      <div className="flex items-center justify-end space-x-1">
+                        <button
+                          onClick={() => handleEdit(c)}
+                          className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-150"
+                          title="Editar cliente"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(c.id)}
+                          className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-150"
+                          title="Excluir cliente"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

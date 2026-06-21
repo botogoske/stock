@@ -283,6 +283,45 @@ func (a *App) CreateUser(user User) CreateUserResponse {
 	}
 }
 
+// UpdateUser updates an existing user in the SQLite database
+func (a *App) UpdateUser(username string, user User) CreateUserResponse {
+	if a.db == nil {
+		return CreateUserResponse{Success: false, Message: "Banco de dados não inicializado."}
+	}
+
+	if user.Email == "" {
+		return CreateUserResponse{
+			Success: false,
+			Message: "Email é obrigatório.",
+		}
+	}
+
+	query := "UPDATE users SET email = ?, role = ?"
+	args := []interface{}{user.Email, user.Role}
+
+	if user.Password != "" {
+		query += ", password = ?"
+		args = append(args, user.Password)
+	}
+
+	query += " WHERE username = ?"
+	args = append(args, username)
+
+	_, err := a.db.Exec(query, args...)
+	if err != nil {
+		log.Printf("Erro ao atualizar usuário: %v", err)
+		return CreateUserResponse{
+			Success: false,
+			Message: "Erro ao atualizar usuário no banco de dados.",
+		}
+	}
+
+	return CreateUserResponse{
+		Success: true,
+		Message: "Usuário atualizado com sucesso!",
+	}
+}
+
 // DeleteUser removes a user by username from the SQLite database
 func (a *App) DeleteUser(username string) bool {
 	if a.db == nil {
@@ -391,6 +430,38 @@ func (a *App) CreateCustomer(customer Customer) CustomerResponse {
 	}
 }
 
+// UpdateCustomer updates an existing customer in the SQLite database
+func (a *App) UpdateCustomer(id int, customer Customer) CustomerResponse {
+	if a.db == nil {
+		return CustomerResponse{Success: false, Message: "Banco de dados não inicializado."}
+	}
+
+	if customer.Name == "" || customer.CNPJ == "" {
+		return CustomerResponse{
+			Success: false,
+			Message: "Nome do cliente e CNPJ são obrigatórios.",
+		}
+	}
+
+	_, err := a.db.Exec(
+		"UPDATE customers SET name = ?, razao_social = ?, cnpj = ?, endereco = ?, bairro = ?, cidade = ?, cep = ? WHERE id = ?",
+		customer.Name, customer.RazaoSocial, customer.CNPJ,
+		customer.Endereco, customer.Bairro, customer.Cidade, customer.CEP, id,
+	)
+	if err != nil {
+		log.Printf("Erro ao atualizar cliente: %v", err)
+		return CustomerResponse{
+			Success: false,
+			Message: "Erro ao atualizar cliente no banco de dados.",
+		}
+	}
+
+	return CustomerResponse{
+		Success: true,
+		Message: "Cliente atualizado com sucesso!",
+	}
+}
+
 // DeleteCustomer removes a customer by ID from the SQLite database
 func (a *App) DeleteCustomer(id int) bool {
 	if a.db == nil {
@@ -480,6 +551,37 @@ func (a *App) CreateProduct(product Product) ProductResponse {
 	return ProductResponse{
 		Success: true,
 		Message: "Produto cadastrado com sucesso!",
+	}
+}
+
+// UpdateProduct updates an existing product in the SQLite database
+func (a *App) UpdateProduct(id int, product Product) ProductResponse {
+	if a.db == nil {
+		return ProductResponse{Success: false, Message: "Banco de dados não inicializado."}
+	}
+
+	if product.Name == "" {
+		return ProductResponse{
+			Success: false,
+			Message: "Nome do produto é obrigatório.",
+		}
+	}
+
+	_, err := a.db.Exec(
+		"UPDATE products SET name = ?, description = ?, price = ?, category = ?, quantity = ?, min_stock = ? WHERE id = ?",
+		product.Name, product.Description, product.Price, product.Category, product.Quantity, product.MinStock, id,
+	)
+	if err != nil {
+		log.Printf("Erro ao atualizar produto: %v", err)
+		return ProductResponse{
+			Success: false,
+			Message: "Erro ao atualizar produto no banco de dados.",
+		}
+	}
+
+	return ProductResponse{
+		Success: true,
+		Message: "Produto atualizado com sucesso!",
 	}
 }
 

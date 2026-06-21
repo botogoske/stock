@@ -34,6 +34,10 @@ export function DeleteUser(arg1) {
   return window['go']['main']['App']['DeleteUser'](arg1);
 }
 
+export function UpdateUser(arg1, arg2) {
+  return window['go']['main']['App']['UpdateUser'](arg1, arg2);
+}
+
 export function GetCompras() {
   return window['go']['main']['App']['GetCompras']();
 }
@@ -56,4 +60,12 @@ export function GetVendas() {
 
 export function Login(arg1, arg2) {
   return window['go']['main']['App']['Login'](arg1, arg2);
+}
+
+export function UpdateCustomer(arg1, arg2) {
+  return window['go']['main']['App']['UpdateCustomer'](arg1, arg2);
+}
+
+export function UpdateProduct(arg1, arg2) {
+  return window['go']['main']['App']['UpdateProduct'](arg1, arg2);
 }
