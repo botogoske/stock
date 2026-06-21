@@ -1,6 +1,6 @@
 // vite.config.ts
-import { defineConfig } from "file:///D:/development/go/src/lab001/frontend/node_modules/vite/dist/node/index.js";
-import react from "file:///D:/development/go/src/lab001/frontend/node_modules/@vitejs/plugin-react/dist/index.mjs";
+import { defineConfig } from "file:///D:/development/go/src/stock/frontend/node_modules/vite/dist/node/index.js";
+import react from "file:///D:/development/go/src/stock/frontend/node_modules/@vitejs/plugin-react/dist/index.mjs";
 var vite_config_default = defineConfig({
   plugins: [react()]
 });

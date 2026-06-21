@@ -34,7 +34,7 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
 	// Open the SQLite database
-	db, err := sql.Open("sqlite", "lab001.db")
+	db, err := sql.Open("sqlite", "stock.db")
 	if err != nil {
 		log.Fatalf("Falha ao abrir banco de dados SQLite: %v", err)
 	}

@@ -1,4 +1,4 @@
-module lab001
+module stock
 
 go 1.25.0
 
