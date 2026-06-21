@@ -52,14 +52,8 @@ func (a *App) startup(ctx context.Context) {
 		log.Fatalf("Falha ao criar tabela users: %v", err)
 	}
 
-	// Migration: drop permissions column from legacy databases
-	_, err = a.db.Exec("ALTER TABLE users DROP COLUMN permissions")
-	if err != nil {
-		// Column already dropped or never existed — ignore
-	}
-
 	// Migration: add password column if it doesn't exist (legacy databases)
-	_, err = a.db.Exec("ALTER TABLE users ADD COLUMN password TEXT NOT NULL DEFAULT 'admin123'")
+	_, err = a.db.Exec("ALTER TABLE users ADD COLUMN password TEXT NOT NULL DEFAULT 'senha123'")
 	if err != nil {
 		// Column already exists — ignore
 	}
@@ -155,7 +149,7 @@ func (a *App) startup(ctx context.Context) {
 
 	if count == 0 {
 		_, err = a.db.Exec("INSERT INTO users (username, email, role) VALUES (?, ?, ?)",
-			"admin", "admin@example.com", "Administrador")
+			"admin", "admin@sistema.com", "Administrador")
 		if err != nil {
 			log.Printf("Erro ao inserir administrador padrão: %v", err)
 		}
@@ -817,4 +811,3 @@ func (a *App) CreateCompra(compra Compra) CompraResponse {
 		Message: "Compra registrada com sucesso!",
 	}
 }
-
